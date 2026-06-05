@@ -28,6 +28,16 @@ public struct KokoroAneSynthesisResult: Sendable {
     public let encoderTokens: Int
     /// `T_a` — acoustic frames produced by PostAlbert / Alignment.
     public let acousticFrames: Int
+    /// Per-token duration frame counts, aligned 1:1 with `inputIds`
+    /// passed to `KokoroAneSynthesizer.synthesize` (BOS + phoneme ids +
+    /// EOS). `tokenDurationFrames[i]` is the number of acoustic frames
+    /// the model assigns to token `i`. Sums to `acousticFrames`.
+    ///
+    /// Consumers can derive per-phoneme audio timestamps via
+    /// `cumulative_frames[i] * (samples.count / acousticFrames) /
+    /// sampleRate` — that's how Sage.is Talking populates read-along
+    /// highlight ranges from the chunked playback path.
+    public let tokenDurationFrames: [Int32]
     /// Per-stage timings.
     public let timings: KokoroAneStageTimings
 
@@ -41,12 +51,14 @@ public struct KokoroAneSynthesisResult: Sendable {
         sampleRate: Int,
         encoderTokens: Int,
         acousticFrames: Int,
+        tokenDurationFrames: [Int32],
         timings: KokoroAneStageTimings
     ) {
         self.samples = samples
         self.sampleRate = sampleRate
         self.encoderTokens = encoderTokens
         self.acousticFrames = acousticFrames
+        self.tokenDurationFrames = tokenDurationFrames
         self.timings = timings
     }
 }
